@@ -17,15 +17,17 @@
 package jp.co.cyberagent.android.gpuimage;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.opengl.GLES20;
-import android.opengl.GLSurfaceView;
-import android.os.*;
+import android.os.AsyncTask;
+import android.os.Build;
+import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.ViewTreeObserver;
@@ -40,25 +42,32 @@ import java.util.concurrent.Semaphore;
 
 public class GPUImageView extends FrameLayout {
 
-    private GLSurfaceView mGLSurfaceView;
+    private GPUImageGLSurfaceView mGLSurfaceView;
     private GPUImage mGPUImage;
     private GPUImageFilter mFilter;
-    public Size mForceSize = null;
     private float mRatio = 0.0f;
-
-    public GPUImageView(Context context) {
-        super(context);
-        init(context, null);
-    }
+    private int mSurfaceViewId;
 
     public GPUImageView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        init(context, attrs);
+        this(context, attrs, 0);
     }
 
-    private void init(Context context, AttributeSet attrs) {
-        mGLSurfaceView = new GPUImageGLSurfaceView(context, attrs);
-        addView(mGLSurfaceView);
+    public GPUImageView(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+        init(context, attrs, defStyleAttr);
+    }
+
+    private void init(Context context, AttributeSet attrs, int defStyleAttr) {
+        TypedArray a = context.getTheme()
+                .obtainStyledAttributes(attrs, R.styleable.GPUImageView, defStyleAttr, 0);
+        mSurfaceViewId = a.getResourceId(R.styleable.GPUImageView_agpu_surfaceView, NO_ID);
+        a.recycle();
+    }
+
+    @Override
+    protected void onFinishInflate() {
+        super.onFinishInflate();
+        mGLSurfaceView = (GPUImageGLSurfaceView) findViewById(mSurfaceViewId);
         mGPUImage = new GPUImage(getContext());
         mGPUImage.setGLSurfaceView(mGLSurfaceView);
     }
@@ -99,9 +108,9 @@ public class GPUImageView extends FrameLayout {
     /**
      * Sets the background color
      *
-     * @param red red color value
+     * @param red   red color value
      * @param green green color value
-     * @param blue red color value
+     * @param blue  red color value
      */
     public void setBackgroundColor(float red, float green, float blue) {
         mGPUImage.setBackgroundColor(red, green, blue);
@@ -192,8 +201,8 @@ public class GPUImageView extends FrameLayout {
      * listener.
      *
      * @param folderName the folder name
-     * @param fileName the file name
-     * @param listener the listener
+     * @param fileName   the file name
+     * @param listener   the listener
      */
     public void saveToPictures(final String folderName, final String fileName,
                                final OnPictureSavedListener listener) {
@@ -233,7 +242,7 @@ public class GPUImageView extends FrameLayout {
             throw new IllegalStateException("Do not call this method from the UI thread!");
         }
 
-        mForceSize = new Size(width, height);
+        mGLSurfaceView.onForceSize(new Size(width, height));
 
         final Semaphore waiter = new Semaphore(0);
 
@@ -272,7 +281,7 @@ public class GPUImageView extends FrameLayout {
         Bitmap bitmap = capture();
 
 
-        mForceSize = null;
+        mGLSurfaceView.onForceSize(null);
         post(new Runnable() {
             @Override
             public void run() {
@@ -294,6 +303,7 @@ public class GPUImageView extends FrameLayout {
 
     /**
      * Capture the current image with the size as it is displayed and retrieve it as Bitmap.
+     *
      * @return current output as Bitmap
      * @throws InterruptedException
      */
@@ -350,26 +360,6 @@ public class GPUImageView extends FrameLayout {
         public Size(int width, int height) {
             this.width = width;
             this.height = height;
-        }
-    }
-
-    private class GPUImageGLSurfaceView extends GLSurfaceView {
-        public GPUImageGLSurfaceView(Context context) {
-            super(context);
-        }
-
-        public GPUImageGLSurfaceView(Context context, AttributeSet attrs) {
-            super(context, attrs);
-        }
-
-        @Override
-        protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-            if (mForceSize != null) {
-                super.onMeasure(MeasureSpec.makeMeasureSpec(mForceSize.width, MeasureSpec.EXACTLY),
-                        MeasureSpec.makeMeasureSpec(mForceSize.height, MeasureSpec.EXACTLY));
-            } else {
-                super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-            }
         }
     }
 
@@ -466,4 +456,9 @@ public class GPUImageView extends FrameLayout {
     public interface OnPictureSavedListener {
         void onPictureSaved(Uri uri);
     }
+
+    public interface OnForcedSizingListener {
+        void onForceSize(Size forcedSize);
+    }
+
 }
