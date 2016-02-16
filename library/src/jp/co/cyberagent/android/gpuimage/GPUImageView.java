@@ -58,6 +58,7 @@ public class GPUImageView extends FrameLayout {
     }
 
     private void init(Context context, AttributeSet attrs, int defStyleAttr) {
+        mGPUImage = new GPUImage(getContext());
         TypedArray a = context.getTheme()
                 .obtainStyledAttributes(attrs, R.styleable.GPUImageView, defStyleAttr, 0);
         mSurfaceViewId = a.getResourceId(R.styleable.GPUImageView_agpu_surfaceView, NO_ID);
@@ -68,7 +69,6 @@ public class GPUImageView extends FrameLayout {
     protected void onFinishInflate() {
         super.onFinishInflate();
         mGLSurfaceView = (GPUImageGLSurfaceView) findViewById(mSurfaceViewId);
-        mGPUImage = new GPUImage(getContext());
         mGPUImage.setGLSurfaceView(mGLSurfaceView);
     }
 
@@ -103,6 +103,14 @@ public class GPUImageView extends FrameLayout {
      */
     public GPUImage getGPUImage() {
         return mGPUImage;
+    }
+
+    @Override
+    public void setBackgroundColor(int color) {
+        setBackgroundColor(
+                ((float) ((color & 0xFF0000) >> 16)) / 255.0f,
+                ((float) ((color & 0xFF00) >> 8)) / 255.0f,
+                ((float) (color & 0xFF)) / 255.0f);
     }
 
     /**
