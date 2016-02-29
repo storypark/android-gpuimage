@@ -36,8 +36,6 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
-import android.view.Display;
-import android.view.WindowManager;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -54,7 +52,8 @@ import java.util.List;
 public class GPUImage {
     private final Context mContext;
     private final GPUImageRenderer mRenderer;
-    private OnRatioChangedListener ratioChangedListener;
+    private int mLongestLength;
+    private OnRatioChangedListener mRatioChangedListener;
     private GLSurfaceView mGlSurfaceView;
     private GPUImageFilter mFilter;
     private Bitmap mCurrentBitmap;
@@ -73,6 +72,7 @@ public class GPUImage {
         mContext = context;
         mFilter = new GPUImageFilter();
         mRenderer = new GPUImageRenderer(mFilter);
+        mLongestLength = 1000; // TODO: 1/03/16 Not arbitrary value
     }
 
     /**
@@ -116,14 +116,21 @@ public class GPUImage {
     }
 
     public void setRatioChangedListener(OnRatioChangedListener ratioChangedListener) {
-        this.ratioChangedListener = ratioChangedListener;
-        if (ratioChangedListener != null) {
+        mRatioChangedListener = ratioChangedListener;
+        if (mRatioChangedListener != null) {
             if (mCurrentBitmap != null) {
-                ratioChangedListener.onRatioChanged((float) mCurrentBitmap.getWidth() / (float) mCurrentBitmap.getHeight());
+                mRatioChangedListener.onRatioChanged((float) mCurrentBitmap.getWidth() / (float) mCurrentBitmap.getHeight());
             } else {
-                ratioChangedListener.onRatioChanged(0);
+                mRatioChangedListener.onRatioChanged(0);
             }
         }
+    }
+
+    public void setLongestLength(int longestLength) {
+        this.mLongestLength = longestLength;
+        mRenderer.deleteImage();
+        mCurrentBitmap = null;
+        requestRender();
     }
 
     /**
@@ -200,8 +207,8 @@ public class GPUImage {
      */
     public void setImage(final Bitmap bitmap) {
         mCurrentBitmap = bitmap;
-        if (ratioChangedListener != null) {
-            ratioChangedListener.onRatioChanged((float) bitmap.getWidth() / (float) bitmap.getHeight());
+        if (mRatioChangedListener != null) {
+            mRatioChangedListener.onRatioChanged((float) bitmap.getWidth() / (float) bitmap.getHeight());
         }
         mRenderer.setImageBitmap(bitmap, false);
         requestRender();
@@ -421,28 +428,18 @@ public class GPUImage {
     }
 
     private int getOutputWidth() {
-        if (mRenderer != null && mRenderer.getFrameWidth() != 0) {
-            return mRenderer.getFrameWidth();
-        } else if (mCurrentBitmap != null) {
+        if (mCurrentBitmap != null) {
             return mCurrentBitmap.getWidth();
         } else {
-            WindowManager windowManager =
-                    (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
-            Display display = windowManager.getDefaultDisplay();
-            return display.getWidth();
+           return mLongestLength;
         }
     }
 
     private int getOutputHeight() {
-        if (mRenderer != null && mRenderer.getFrameHeight() != 0) {
-            return mRenderer.getFrameHeight();
-        } else if (mCurrentBitmap != null) {
+        if (mCurrentBitmap != null) {
             return mCurrentBitmap.getHeight();
         } else {
-            WindowManager windowManager =
-                    (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
-            Display display = windowManager.getDefaultDisplay();
-            return display.getHeight();
+            return mLongestLength;
         }
     }
 
