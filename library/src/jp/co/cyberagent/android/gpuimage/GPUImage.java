@@ -593,15 +593,6 @@ public class GPUImage {
 
         @Override
         protected Bitmap doInBackground(Void... params) {
-            if (mRenderer != null && mRenderer.getFrameWidth() == 0) {
-                try {
-                    synchronized (mRenderer.mSurfaceChangedWaiter) {
-                        mRenderer.mSurfaceChangedWaiter.wait(3000);
-                    }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
             mOutputWidth = getOutputWidth();
             mOutputHeight = getOutputHeight();
             return loadResizedImage();
