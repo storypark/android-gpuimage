@@ -39,10 +39,13 @@ import android.provider.MediaStore;
 import android.view.Display;
 import android.view.WindowManager;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
-import java.util.concurrent.Semaphore;
 
 /**
  * The main accessor for GPUImage functionality. This class helps to do common
@@ -51,6 +54,7 @@ import java.util.concurrent.Semaphore;
 public class GPUImage {
     private final Context mContext;
     private final GPUImageRenderer mRenderer;
+    private OnRatioChangedListener ratioChangedListener;
     private GLSurfaceView mGlSurfaceView;
     private GPUImageFilter mFilter;
     private Bitmap mCurrentBitmap;
@@ -109,6 +113,17 @@ public class GPUImage {
      */
     public void setBackgroundColor(float red, float green, float blue) {
         mRenderer.setBackgroundColor(red, green, blue);
+    }
+
+    public void setRatioChangedListener(OnRatioChangedListener ratioChangedListener) {
+        this.ratioChangedListener = ratioChangedListener;
+        if (ratioChangedListener != null) {
+            if (mCurrentBitmap != null) {
+                ratioChangedListener.onRatioChanged((float) mCurrentBitmap.getWidth() / (float) mCurrentBitmap.getHeight());
+            } else {
+                ratioChangedListener.onRatioChanged(0);
+            }
+        }
     }
 
     /**
@@ -185,6 +200,9 @@ public class GPUImage {
      */
     public void setImage(final Bitmap bitmap) {
         mCurrentBitmap = bitmap;
+        if (ratioChangedListener != null) {
+            ratioChangedListener.onRatioChanged((float) bitmap.getWidth() / (float) bitmap.getHeight());
+        }
         mRenderer.setImageBitmap(bitmap, false);
         requestRender();
     }
@@ -714,4 +732,9 @@ public class GPUImage {
     }
 
     public enum ScaleType { CENTER_INSIDE, CENTER_CROP }
+
+    public interface OnRatioChangedListener {
+        void onRatioChanged(float ratio);
+    }
+
 }
