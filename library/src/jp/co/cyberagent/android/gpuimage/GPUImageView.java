@@ -45,7 +45,7 @@ public class GPUImageView extends FrameLayout {
     private GPUImageGLSurfaceView mGLSurfaceView;
     private GPUImage mGPUImage;
     private GPUImageFilter mFilter;
-    private float mRatio = 0.0f;
+    private float mRatio;
     private int mSurfaceViewId;
 
     public GPUImageView(Context context, AttributeSet attrs) {
@@ -92,7 +92,8 @@ public class GPUImageView extends FrameLayout {
             int newHeightSpec = MeasureSpec.makeMeasureSpec(newHeight, MeasureSpec.EXACTLY);
             super.onMeasure(newWidthSpec, newHeightSpec);
         } else {
-            super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+            super.onMeasure(MeasureSpec.makeMeasureSpec(0, MeasureSpec.EXACTLY),
+                    MeasureSpec.makeMeasureSpec(0, MeasureSpec.EXACTLY));
         }
     }
 
