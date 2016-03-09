@@ -42,6 +42,7 @@ import java.util.Date;
 import jp.co.cyberagent.android.gpuimage.GPUImage;
 import jp.co.cyberagent.android.gpuimage.GPUImage.OnPictureSavedListener;
 import jp.co.cyberagent.android.gpuimage.GPUImageFilter;
+import jp.co.cyberagent.android.gpuimage.GPUImageGLSurfaceView;
 import jp.co.cyberagent.android.gpuimage.sample.GPUImageFilterTools;
 import jp.co.cyberagent.android.gpuimage.sample.GPUImageFilterTools.FilterAdjuster;
 import jp.co.cyberagent.android.gpuimage.sample.GPUImageFilterTools.OnGpuImageFilterChosenListener;
@@ -66,7 +67,7 @@ public class ActivityCamera extends Activity implements OnSeekBarChangeListener,
         findViewById(R.id.button_capture).setOnClickListener(this);
 
         mGPUImage = new GPUImage(this);
-        mGPUImage.setGLSurfaceView((GLSurfaceView) findViewById(R.id.surfaceView));
+        mGPUImage.setGLSurfaceView((GPUImageGLSurfaceView) findViewById(R.id.surfaceView));
 
         mCameraHelper = new CameraHelper(this);
         mCamera = new CameraLoader();

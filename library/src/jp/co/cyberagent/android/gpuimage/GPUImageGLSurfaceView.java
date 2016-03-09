@@ -1,10 +1,9 @@
 package jp.co.cyberagent.android.gpuimage;
 
 import android.content.Context;
-import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
 
-public class GPUImageGLSurfaceView extends GLSurfaceView implements GPUImageView.OnForcedSizingListener {
+public class GPUImageGLSurfaceView extends GLTextureView implements GPUImageView.OnForcedSizingListener {
 
     private GPUImageView.Size mForcedSize;
 

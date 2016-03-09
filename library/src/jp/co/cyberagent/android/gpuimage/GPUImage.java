@@ -25,7 +25,6 @@ import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
-import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.hardware.Camera;
 import android.media.ExifInterface;
@@ -55,7 +54,7 @@ public class GPUImage {
     private final GPUImageRenderer mRenderer;
     private int mLongestLength;
     private OnRatioChangedListener mRatioChangedListener;
-    private GLSurfaceView mGlSurfaceView;
+    private GLTextureView mGlSurfaceView;
     private GPUImageFilter mFilter;
     private Bitmap mCurrentBitmap;
     private ScaleType mScaleType = ScaleType.CENTER_CROP;
@@ -95,11 +94,10 @@ public class GPUImage {
      *
      * @param view the GLSurfaceView
      */
-    public void setGLSurfaceView(final GLSurfaceView view) {
+    public void setGLSurfaceView(final GLTextureView view) {
         mGlSurfaceView = view;
         mGlSurfaceView.setEGLContextClientVersion(2);
         mGlSurfaceView.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
-        mGlSurfaceView.getHolder().setFormat(PixelFormat.RGBA_8888);
         mGlSurfaceView.setRenderer(mRenderer);
         mGlSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         mGlSurfaceView.requestRender();
