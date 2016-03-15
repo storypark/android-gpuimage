@@ -663,7 +663,13 @@ public class GPUImage {
             if (bitmap == null) {
                 return null;
             }
+            Point sizeBeforeRotation = new Point(bitmap.getWidth(), bitmap.getHeight());
             bitmap = rotateImage(bitmap);
+            Point sizeAfterRotation = new Point(bitmap.getWidth(), bitmap.getHeight());
+            if (mSizeProvider != null && !sizeBeforeRotation.equals(sizeAfterRotation)) {
+                outputSize = mSizeProvider.onTransformLoadedSize(
+                        sizeAfterRotation, outputSize);
+            }
             bitmap = scaleBitmap(bitmap, outputSize);
             return bitmap;
         }
