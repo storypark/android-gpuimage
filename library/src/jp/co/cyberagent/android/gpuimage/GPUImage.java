@@ -677,7 +677,6 @@ public class GPUImage {
             if (workBitmap != bitmap) {
                 bitmap.recycle();
                 bitmap = workBitmap;
-                System.gc();
             }
 
             if (mScaleType == ScaleType.CENTER_CROP) {
