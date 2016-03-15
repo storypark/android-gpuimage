@@ -728,24 +728,26 @@ public class GPUImage {
             }
         }
 
-        private Bitmap rotateImage(final Bitmap bitmap) {
+        private Bitmap rotateImage(Bitmap bitmap) {
             if (bitmap == null) {
                 return null;
             }
-            Bitmap rotatedBitmap = bitmap;
             try {
                 int orientation = getImageOrientation();
                 if (orientation != 0) {
                     Matrix matrix = new Matrix();
                     matrix.postRotate(orientation);
-                    rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(),
+                    Bitmap rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(),
                             bitmap.getHeight(), matrix, true);
-                    bitmap.recycle();
+                    if (rotatedBitmap != bitmap) {
+                        bitmap.recycle();
+                        bitmap = rotatedBitmap;
+                    }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            return rotatedBitmap;
+            return bitmap;
         }
 
         protected abstract int getImageOrientation() throws IOException;
