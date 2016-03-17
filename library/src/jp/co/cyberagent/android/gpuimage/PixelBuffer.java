@@ -8,6 +8,19 @@
 
 package jp.co.cyberagent.android.gpuimage;
 
+import android.graphics.Bitmap;
+import android.opengl.GLSurfaceView;
+import android.util.Log;
+
+import java.nio.IntBuffer;
+
+import javax.microedition.khronos.egl.EGL10;
+import javax.microedition.khronos.egl.EGLConfig;
+import javax.microedition.khronos.egl.EGLContext;
+import javax.microedition.khronos.egl.EGLDisplay;
+import javax.microedition.khronos.egl.EGLSurface;
+import javax.microedition.khronos.opengles.GL10;
+
 import static javax.microedition.khronos.egl.EGL10.EGL_ALPHA_SIZE;
 import static javax.microedition.khronos.egl.EGL10.EGL_BLUE_SIZE;
 import static javax.microedition.khronos.egl.EGL10.EGL_DEFAULT_DISPLAY;
@@ -21,19 +34,6 @@ import static javax.microedition.khronos.egl.EGL10.EGL_STENCIL_SIZE;
 import static javax.microedition.khronos.egl.EGL10.EGL_WIDTH;
 import static javax.microedition.khronos.opengles.GL10.GL_RGBA;
 import static javax.microedition.khronos.opengles.GL10.GL_UNSIGNED_BYTE;
-
-import java.nio.IntBuffer;
-
-import javax.microedition.khronos.egl.EGL10;
-import javax.microedition.khronos.egl.EGLConfig;
-import javax.microedition.khronos.egl.EGLContext;
-import javax.microedition.khronos.egl.EGLDisplay;
-import javax.microedition.khronos.egl.EGLSurface;
-import javax.microedition.khronos.opengles.GL10;
-
-import android.graphics.Bitmap;
-import android.opengl.GLSurfaceView;
-import android.util.Log;
 
 public class PixelBuffer {
     final static String TAG = "PixelBuffer";
@@ -189,22 +189,27 @@ public class PixelBuffer {
     }
 
     private void convertToBitmap() {
-        int[] iat = new int[mWidth * mHeight];
         IntBuffer ib = IntBuffer.allocate(mWidth * mHeight);
         mGL.glReadPixels(0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, ib);
-        int[] ia = ib.array();
 
-        //Stupid !
-        // Convert upside down mirror-reversed image to right-side up normal
-        // image.
-        for (int i = 0; i < mHeight; i++) {
-            for (int j = 0; j < mWidth; j++) {
-                iat[(mHeight - i - 1) * mWidth + j] = ia[i * mWidth + j];
+        int[] ia = ib.array();
+        int count = ia.length;
+        int lines = mHeight / 2;
+
+        // Convert upside down mirror-reversed image to right-side up normal image.
+        for (int i = 0; i < lines; i++) {
+            for (int j = 0, base = i * mWidth; j < mWidth; j++) {
+                int pos1 = base + j; // i * mWidth + j
+                int pos2 = count - base - mWidth + j; // (mHeight - i - 1) * mWidth + j;
+                // swap data
+                int temp = ia[pos1];
+                ia[pos1] = ia[pos2];
+                ia[pos2] = temp;
             }
         }
-        
 
         mBitmap = Bitmap.createBitmap(mWidth, mHeight, Bitmap.Config.ARGB_8888);
-        mBitmap.copyPixelsFromBuffer(IntBuffer.wrap(iat));
+        mBitmap.copyPixelsFromBuffer(IntBuffer.wrap(ia));
     }
+
 }
