@@ -129,7 +129,6 @@ public class GPUImageView extends FrameLayout {
     public void setRatio(float ratio) {
         mRatio = ratio;
         mGLSurfaceView.requestLayout();
-        mGPUImage.deleteImage();
     }
 
     /**
