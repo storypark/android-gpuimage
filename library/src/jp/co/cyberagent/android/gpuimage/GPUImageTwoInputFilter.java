@@ -16,13 +16,14 @@
 
 package jp.co.cyberagent.android.gpuimage;
 
+import android.graphics.Bitmap;
+import android.opengl.GLES20;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 
 import jp.co.cyberagent.android.gpuimage.util.TextureRotationUtil;
-import android.graphics.Bitmap;
-import android.opengl.GLES20;
 
 public class GPUImageTwoInputFilter extends GPUImageFilter {
     private static final String VERTEX_SHADER = "attribute vec4 position;\n" +
@@ -61,6 +62,10 @@ public class GPUImageTwoInputFilter extends GPUImageFilter {
         mFilterSecondTextureCoordinateAttribute = GLES20.glGetAttribLocation(getProgram(), "inputTextureCoordinate2");
         mFilterInputTextureUniform2 = GLES20.glGetUniformLocation(getProgram(), "inputImageTexture2"); // This does assume a name of "inputImageTexture2" for second input texture in the fragment shader
         GLES20.glEnableVertexAttribArray(mFilterSecondTextureCoordinateAttribute);
+
+        if (mFilterSourceTexture2 != OpenGlUtils.NO_TEXTURE && !GLES20.glIsTexture(mFilterSourceTexture2)) {
+            mFilterSourceTexture2 = OpenGlUtils.NO_TEXTURE;
+        }
 
         if (mBitmap != null&&!mBitmap.isRecycled()) {
             setBitmap(mBitmap);
