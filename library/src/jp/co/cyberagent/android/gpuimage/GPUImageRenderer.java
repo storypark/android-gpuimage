@@ -64,7 +64,7 @@ public class GPUImageRenderer implements Renderer, PreviewCallback {
     private int mOutputWidth;
     private int mOutputHeight;
     private Size mPreviewSize;
-    private Bitmap mResizedBitmap;
+    private Bitmap mCurrentBitmap;
     private int mImageWidth;
     private int mImageHeight;
     private int mAddedPadding;
@@ -105,8 +105,8 @@ public class GPUImageRenderer implements Renderer, PreviewCallback {
             mGLTextureId = NO_IMAGE;
             if (mGLRgbBuffer != null && mPreviewSize != null) {
                 mGLTextureId = OpenGlUtils.loadTexture(mGLRgbBuffer, mPreviewSize, mGLTextureId);
-            } else if (mResizedBitmap != null) {
-                setImageBitmap(mResizedBitmap, false);
+            } else if (mCurrentBitmap != null) {
+                setImageBitmap(mCurrentBitmap, false);
             } else {
                 throw new IllegalStateException("Cannot load expected texture");
             }
@@ -241,7 +241,7 @@ public class GPUImageRenderer implements Renderer, PreviewCallback {
         if (bitmap == null) {
             return;
         }
-        mResizedBitmap = bitmap;
+        mCurrentBitmap = bitmap;
 
         runOnDraw(new Runnable() {
 
