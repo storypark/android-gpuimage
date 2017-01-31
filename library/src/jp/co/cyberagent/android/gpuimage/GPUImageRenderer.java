@@ -249,7 +249,7 @@ public class GPUImageRenderer implements Renderer, PreviewCallback {
             public void run() {
                 Bitmap resizedBitmap = null;
                 if (bitmap.getWidth() % 2 == 1) {
-                    resizedBitmap = Bitmap.createBitmap(bitmap.getWidth() + 1, bitmap.getHeight(),
+                    resizedBitmap = Bitmap.createBitmap(bitmap.getWidth() - 1, bitmap.getHeight(),
                             Bitmap.Config.ARGB_8888);
                     Canvas can = new Canvas(resizedBitmap);
                     can.drawARGB(0x00, 0x00, 0x00, 0x00);
