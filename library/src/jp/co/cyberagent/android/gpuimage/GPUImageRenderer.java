@@ -26,10 +26,6 @@ import android.hardware.Camera.Size;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView.Renderer;
 
-import jp.co.cyberagent.android.gpuimage.util.TextureRotationUtil;
-
-import javax.microedition.khronos.egl.EGLConfig;
-import javax.microedition.khronos.opengles.GL10;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -37,6 +33,11 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.LinkedList;
 import java.util.Queue;
+
+import javax.microedition.khronos.egl.EGLConfig;
+import javax.microedition.khronos.opengles.GL10;
+
+import jp.co.cyberagent.android.gpuimage.util.TextureRotationUtil;
 
 import static jp.co.cyberagent.android.gpuimage.util.TextureRotationUtil.TEXTURE_NO_ROTATION;
 
@@ -62,6 +63,8 @@ public class GPUImageRenderer implements Renderer, PreviewCallback {
 
     private int mOutputWidth;
     private int mOutputHeight;
+    private Size mPreviewSize;
+    private Bitmap mResizedBitmap;
     private int mImageWidth;
     private int mImageHeight;
     private int mAddedPadding;
@@ -97,6 +100,17 @@ public class GPUImageRenderer implements Renderer, PreviewCallback {
     public void onSurfaceCreated(final GL10 unused, final EGLConfig config) {
         GLES20.glClearColor(mBackgroundRed, mBackgroundGreen, mBackgroundBlue, 1);
         GLES20.glDisable(GLES20.GL_DEPTH_TEST);
+        if (mGLTextureId != NO_IMAGE && !GLES20.glIsTexture(mGLTextureId)) {
+            // There is supposed to be a valid texture here, but there is not
+            mGLTextureId = NO_IMAGE;
+            if (mGLRgbBuffer != null && mPreviewSize != null) {
+                mGLTextureId = OpenGlUtils.loadTexture(mGLRgbBuffer, mPreviewSize, mGLTextureId);
+            } else if (mResizedBitmap != null) {
+                setImageBitmap(mResizedBitmap, false);
+            } else {
+                throw new IllegalStateException("Cannot load expected texture");
+            }
+        }
         mFilter.init();
     }
 
@@ -148,6 +162,7 @@ public class GPUImageRenderer implements Renderer, PreviewCallback {
     @Override
     public void onPreviewFrame(final byte[] data, final Camera camera) {
         final Size previewSize = camera.getParameters().getPreviewSize();
+        mPreviewSize = previewSize;
         if (mGLRgbBuffer == null) {
             mGLRgbBuffer = IntBuffer.allocate(previewSize.width * previewSize.height);
         }
@@ -226,6 +241,7 @@ public class GPUImageRenderer implements Renderer, PreviewCallback {
         if (bitmap == null) {
             return;
         }
+        mResizedBitmap = bitmap;
 
         runOnDraw(new Runnable() {
 
