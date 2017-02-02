@@ -553,18 +553,33 @@ public class GPUImage {
         }
 
         @Override
-        protected int getImageOrientation() throws IOException {
-            Cursor cursor = mContext.getContentResolver().query(mUri,
+        protected Matrix getAdjustmentMatrix() throws IOException {
+            final Matrix matrix = new Matrix();
+            final Cursor cursor = mContext.getContentResolver().query(mUri,
                     new String[]{MediaStore.Images.ImageColumns.ORIENTATION}, null, null, null);
 
             if (cursor == null || cursor.getCount() != 1) {
-                return 0;
+                return matrix;
             }
 
             cursor.moveToFirst();
-            int orientation = cursor.getInt(0);
+            final int orientation = cursor.getInt(0);
+            // 0, 90, 180, 270
+            switch (orientation) {
+                case 90:
+                    matrix.setRotate(90);
+                    break;
+                case 180:
+                    matrix.setRotate(180);
+                    break;
+                case 270:
+                    matrix.setRotate(-90);
+                    break;
+                default:
+                    // Do nothing
+            }
             cursor.close();
-            return orientation;
+            return matrix;
         }
     }
 
@@ -584,21 +599,38 @@ public class GPUImage {
         }
 
         @Override
-        protected int getImageOrientation() throws IOException {
-            ExifInterface exif = new ExifInterface(mImageFile.getAbsolutePath());
-            int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, 1);
-            switch (orientation) {
-                case ExifInterface.ORIENTATION_NORMAL:
-                    return 0;
-                case ExifInterface.ORIENTATION_ROTATE_90:
-                    return 90;
+        protected Matrix getAdjustmentMatrix() throws IOException {
+            final ExifInterface exif = new ExifInterface(mImageFile.getAbsolutePath());
+            final Matrix matrix = new Matrix();
+            switch (exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, 1)) {
+                case ExifInterface.ORIENTATION_FLIP_HORIZONTAL:
+                    matrix.setScale(-1, 1);
+                    break;
                 case ExifInterface.ORIENTATION_ROTATE_180:
-                    return 180;
+                    matrix.setRotate(180);
+                    break;
+                case ExifInterface.ORIENTATION_FLIP_VERTICAL:
+                    matrix.setRotate(180);
+                    matrix.postScale(-1, 1);
+                    break;
+                case ExifInterface.ORIENTATION_TRANSPOSE:
+                    matrix.setRotate(90);
+                    matrix.postScale(-1, 1);
+                    break;
+                case ExifInterface.ORIENTATION_ROTATE_90:
+                    matrix.setRotate(90);
+                    break;
+                case ExifInterface.ORIENTATION_TRANSVERSE:
+                    matrix.setRotate(-90);
+                    matrix.postScale(-1, 1);
+                    break;
                 case ExifInterface.ORIENTATION_ROTATE_270:
-                    return 270;
+                    matrix.setRotate(-90);
+                    break;
                 default:
-                    return 0;
+                    // Do nothing.
             }
+            return matrix;
         }
     }
 
@@ -739,12 +771,10 @@ public class GPUImage {
                 return null;
             }
             try {
-                int orientation = getImageOrientation();
-                if (orientation != 0) {
-                    Matrix matrix = new Matrix();
-                    matrix.postRotate(orientation);
+                final Matrix adjustmentMatrix = getAdjustmentMatrix();
+                if (!adjustmentMatrix.isIdentity()) {
                     Bitmap rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(),
-                            bitmap.getHeight(), matrix, true);
+                            bitmap.getHeight(), adjustmentMatrix, true);
                     if (rotatedBitmap != bitmap) {
                         bitmap.recycle();
                         bitmap = rotatedBitmap;
@@ -756,7 +786,7 @@ public class GPUImage {
             return bitmap;
         }
 
-        protected abstract int getImageOrientation() throws IOException;
+        protected abstract Matrix getAdjustmentMatrix() throws IOException;
     }
 
     public interface ResponseListener<T> {
