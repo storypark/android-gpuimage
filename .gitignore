@@ -9,3 +9,10 @@ target/
 build/
 .gradle/
 local.properties
+
+#CMake/NDK build artifacts
+.cxx/
+.externalNativeBuild/
+cmake-build-*/
+obj/
+libs/

@@ -1,12 +1,15 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion COMPILE_SDK_VERSION as int
-    buildToolsVersion BUILD_TOOLS_VERSION
+    namespace 'jp.co.cyberagent.android.gpuimage.sample'
+    compileSdk 35
 
     defaultConfig {
-        minSdkVersion MIN_SDK_VERSION as int
-        targetSdkVersion TARGET_SDK_VERSION as int
+        minSdkVersion 21
+        targetSdkVersion 35
+        applicationId 'jp.co.cyberagent.android.gpuimage.sample'
+        versionCode 1
+        versionName '1.0'
     }
 
     sourceSets {
@@ -20,7 +23,7 @@ android {
             assets.srcDirs = ['assets']
         }
 
-        instrumentTest.setRoot('tests')
+        // instrumentTest.setRoot('tests')  // Deprecated
     }
 
     lintOptions {
@@ -28,12 +31,14 @@ android {
     }
 }
 repositories {
-    jcenter()
+    google()
+    mavenCentral()
     maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
 }
 
 dependencies {
-    compile project(':library')
-//    compile 'jp.co.cyberagent.android.gpuimage:gpuimage-library:+@aar'
-    compile 'com.android.support:support-v4:21.+'
+    implementation project(':library')
+//    implementation 'jp.co.cyberagent.android.gpuimage:gpuimage-library:+@aar'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
 }
