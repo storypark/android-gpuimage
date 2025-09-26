@@ -1,21 +1,35 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion COMPILE_SDK_VERSION as int
-    buildToolsVersion BUILD_TOOLS_VERSION
+    namespace 'jp.co.cyberagent.android.gpuimage'
+    compileSdk 35
+    ndkVersion "28.0.12433566"
 
     defaultConfig {
-        minSdkVersion MIN_SDK_VERSION as int
-        targetSdkVersion TARGET_SDK_VERSION as int
+        minSdkVersion 21
+        targetSdkVersion 35
 
         versionCode = VERSION_CODE
         versionName = VERSION_NAME
 
-        ndk {
-            moduleName "gpuimage-library"
-            stl "gnustl_shared"
-            abiFilters "all"
-            ldLibs "log"
+        externalNativeBuild {
+            cmake {
+                arguments "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
+                cppFlags "-std=c++17"
+            }
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path "src/main/cpp/CMakeLists.txt"
+            version "3.22.1"
+        }
+    }
+
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging = false
         }
     }
 
@@ -31,7 +45,7 @@ android {
             jni.srcDirs = ['jni']
         }
 
-        instrumentTest.setRoot('tests')
+        // instrumentTest.setRoot('tests')  // Deprecated in modern Gradle
     }
 
     lintOptions {
@@ -51,11 +65,11 @@ android {
 
         task("bundleJavadoc${variant.name.capitalize()}", type: Jar) {
             description "Bundles Javadoc into zip for $variant.name."
-            classifier = "javadoc"
+            archiveClassifier = "javadoc"
             from tasks["javadoc${variant.name.capitalize()}"]
         }
     }
 }
 
 apply from: 'android-artifacts.gradle'
-apply from: 'central-publish.gradle'
+//apply from: 'central-publish.gradle'  // Disabled for build testing
