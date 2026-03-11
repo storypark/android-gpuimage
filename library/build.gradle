@@ -1,9 +1,10 @@
 apply plugin: 'com.android.library'
+apply plugin: 'maven-publish'
 
 android {
     namespace 'jp.co.cyberagent.android.gpuimage'
     compileSdk 35
-    ndkVersion "28.0.12433566"
+    ndkVersion "27.0.12077973"
 
     defaultConfig {
         minSdkVersion 21
@@ -73,3 +74,16 @@ android {
 
 apply from: 'android-artifacts.gradle'
 //apply from: 'central-publish.gradle'  // Disabled for build testing
+
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+                groupId = GROUP
+                artifactId = 'android-gpuimage'
+                version = VERSION_NAME
+            }
+        }
+    }
+}
