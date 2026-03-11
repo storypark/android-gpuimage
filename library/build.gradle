@@ -53,6 +53,12 @@ android {
         abortOnError false
     }
 
+    publishing {
+        singleVariant('release') {
+            withSourcesJar()
+        }
+    }
+
     android.libraryVariants.all { variant ->
         if (variant.buildType.isDebuggable()) {
             return; // Skip debug builds.
